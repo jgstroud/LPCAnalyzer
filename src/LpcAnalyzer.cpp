@@ -4,8 +4,8 @@
 #include <AnalyzerChannelData.h>
 
 LpcAnalyzer::LpcAnalyzer()
-	: Analyzer(),
-    mSettings(std::make_shared<LpcAnalyzerSettings>()),
+	: Analyzer2(),
+    mSettings( new LpcAnalyzerSettings() ),
 	mSimulationInitilized(false),
 	mLAD0(NULL),
 	mLAD1(NULL),
@@ -25,11 +25,13 @@ LpcAnalyzer::~LpcAnalyzer()
 
 void LpcAnalyzer::SetupResults()
 {
-	mResults = std::make_shared<LpcAnalyzerResults>(this, mSettings);
+	mResults.reset( new LpcAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults(mResults.get());
 
-	mResults->AddChannelBubblesWillAppearOn(mSettings->mLCLKChannel);
-	mResults->AddChannelBubblesWillAppearOn(mSettings->mLFRAMEChannel);
+	if( mSettings->mLCLKChannel != UNDEFINED_CHANNEL )
+		mResults->AddChannelBubblesWillAppearOn(mSettings->mLCLKChannel);
+	if( mSettings->mLFRAMEChannel != UNDEFINED_CHANNEL )
+		mResults->AddChannelBubblesWillAppearOn(mSettings->mLFRAMEChannel);
 
 }
 
@@ -110,16 +112,16 @@ void LpcAnalyzer::GetLpcPacket()
 	mMarkerLocations.clear();
 	ReportProgress(mLCLK->GetSampleNumber());
 
+	if (mLCLK->GetBitState() != 0) {
+		mLCLK->AdvanceToNextEdge(); // Advance to falling edge
+	}
 	//Let's read the LPC transaction until to end
 	while (lpc_pos != COMPLETE) {
-
 		lad_result.Reset(&lad_nibble, AnalyzerEnums::MsbFirst, 4);
-		mLCLK->AdvanceToNextEdge(); //Advance to the next falling edge of LCLK
+		mLCLK->AdvanceToNextEdge(); //Advance to the next rising edge of LCLK
 		result_frame.mStartingSampleInclusive= mLCLK->GetSampleNumber(); //Frame starts at beginning of clock edge
 		result_frame.mFlags = NO_ERROR;
 
-		//Advance the half way along clock period. This is where the LADs are read.
-		mLCLK->Advance((mLCLK->GetSampleOfNextEdge() - mLCLK->GetSampleNumber()) / 2);
 		mCurrentSample = mLCLK->GetSampleNumber();
 		ReadLADS(&lad_result); //Build the 4 bits into a nibble and put into lad_nibble array.
 
@@ -128,7 +130,6 @@ void LpcAnalyzer::GetLpcPacket()
 		
 		//Put the current lpc state into the results frame. mData2 stores the lpc_state.
 		result_frame.mData2 = lpc_pos;
-
 		//If LFRAME goes low during transaction something is wrong.
 		if (lpc_pos != START && mLFRAME->GetBitState() == BIT_LOW) {
 			result_frame.mFlags |= FRAME_ERROR;
@@ -385,12 +386,11 @@ void LpcAnalyzer::GetLpcPacket()
 		}
 
 
-		mLCLK->AdvanceToNextEdge(); //Advance to rising edge of LCLK
+		mLCLK->AdvanceToNextEdge(); //Advance to falling edge of LCLK
 		result_frame.mEndingSampleInclusive = mLCLK->GetSampleOfNextEdge(); //Frame ends at the falling edge of the next clock
 		result_frame.mData1 = lad_nibble; //store the lad values into the frame. mData1 stores the lads.
 		mResults->AddFrame(result_frame);
 		mResults->CommitResults();
-		
 	}
 
 	

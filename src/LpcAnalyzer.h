@@ -1,15 +1,13 @@
 #ifndef LPC_ANALYZER_H
 #define LPC_ANALYZER_H
 
-#include <memory>
-
 #include <Analyzer.h>
 #include "LpcAnalyzerResults.h"
 #include "LpcSimulationDataGenerator.h"
 
 class LpcAnalyzerSettings;
 
-class ANALYZER_EXPORT LpcAnalyzer : public Analyzer
+class ANALYZER_EXPORT LpcAnalyzer : public Analyzer2
 {
 public:
     LpcAnalyzer();

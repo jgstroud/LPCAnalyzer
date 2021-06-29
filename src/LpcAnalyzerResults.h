@@ -11,7 +11,7 @@ class LpcAnalyzerSettings;
 class LpcAnalyzerResults : public AnalyzerResults
 {
 public:
-    LpcAnalyzerResults(LpcAnalyzer* analyzer, std::shared_ptr<LpcAnalyzerSettings> settings);
+    LpcAnalyzerResults(LpcAnalyzer* analyzer, LpcAnalyzerSettings* settings);
     virtual ~LpcAnalyzerResults();
 
     virtual void GenerateBubbleText(U64 frame_index, Channel &channel, DisplayBase display_base);
@@ -24,7 +24,7 @@ public:
 protected: //functions
 
 protected: //vars
-    std::shared_ptr<LpcAnalyzerSettings> mSettings;
+    LpcAnalyzerSettings* mSettings;
     LpcAnalyzer* mAnalyzer;
 };
 
