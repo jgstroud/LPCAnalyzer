@@ -107,6 +107,8 @@ void LpcAnalyzer::GetLpcPacket()
 	U8 cyc_type = 0;
 	U8 sync_count = 0; //Counts sync attempts
 	const U8 MAX_SYNC_ATTEMPT = 16; //Abritrary amount of times to wait for a sync before returning an error
+	U64 data = 0;
+	U8 commit = 1;
 
 
 	mMarkerLocations.clear();
@@ -119,7 +121,8 @@ void LpcAnalyzer::GetLpcPacket()
 	while (lpc_pos != COMPLETE) {
 		lad_result.Reset(&lad_nibble, AnalyzerEnums::MsbFirst, 4);
 		mLCLK->AdvanceToNextEdge(); //Advance to the next rising edge of LCLK
-		result_frame.mStartingSampleInclusive= mLCLK->GetSampleNumber(); //Frame starts at beginning of clock edge
+		if (commit)
+			result_frame.mStartingSampleInclusive= mLCLK->GetSampleNumber(); //Frame starts at beginning of clock edge
 		result_frame.mFlags = NO_ERROR;
 
 		mCurrentSample = mLCLK->GetSampleNumber();
@@ -134,6 +137,7 @@ void LpcAnalyzer::GetLpcPacket()
 		if (lpc_pos != START && mLFRAME->GetBitState() == BIT_LOW) {
 			result_frame.mFlags |= FRAME_ERROR;
 			lpc_pos = COMPLETE;
+			mResults->CommitResults();
 			return;
 		}
 
@@ -163,6 +167,7 @@ void LpcAnalyzer::GetLpcPacket()
 			}
 			else {
 				lpc_pos = COMPLETE;
+				mResults->CommitResults();
 				return;
 			}
 			break;
@@ -201,9 +206,14 @@ void LpcAnalyzer::GetLpcPacket()
 			if (clock_delay == 3) {
 				lpc_pos = IO_READ_TAR;
 				clock_delay = 0;
+				data = (data << 4 | lad_nibble);
+				lad_nibble = data;
+				commit = 1;
 			}
 			else {
 				clock_delay++;
+				commit = 0;
+				data = (data << 4 | lad_nibble);
 			}
 			break;
 
@@ -234,9 +244,14 @@ void LpcAnalyzer::GetLpcPacket()
 			if (clock_delay == 1) {
 				lpc_pos = TAR;
 				clock_delay = 0;
+				data = (data | lad_nibble << 4);
+				lad_nibble = data;
+				commit = 1;
 			}
 			else {
 				clock_delay++;
+				commit = 0;
+				data = lad_nibble;
 			}
 			break;
 
@@ -245,9 +260,14 @@ void LpcAnalyzer::GetLpcPacket()
 			if (clock_delay == 3) {
 				lpc_pos = IO_WRITE_DATA;
 				clock_delay = 0;
+				data = (data << 4 | lad_nibble);
+				lad_nibble = data;
+				commit = 1;
 			}
 			else {
 				clock_delay++;
+				commit = 0;
+				data = (data << 4 | lad_nibble);
 			}
 			break;
 
@@ -255,9 +275,14 @@ void LpcAnalyzer::GetLpcPacket()
 			if (clock_delay == 1) {
 				lpc_pos = IO_WRITE_TAR;
 				clock_delay = 0;
+				data = (data | lad_nibble << 4);
+				lad_nibble = data;
+				commit = 1;
 			}
 			else {
 				clock_delay++;
+				commit = 0;
+				data = lad_nibble;
 			}
 			break;
 
@@ -289,9 +314,14 @@ void LpcAnalyzer::GetLpcPacket()
 			if (clock_delay == 7) {
 				lpc_pos = MEM_WRITE_DATA;
 				clock_delay = 0;
+				data = (data << 4 | lad_nibble);
+				lad_nibble = data;
+				commit = 1;
 			}
 			else {
 				clock_delay++;
+				commit = 0;
+				data = (data << 4 | lad_nibble);
 			}
 			break;
 
@@ -333,9 +363,14 @@ void LpcAnalyzer::GetLpcPacket()
 			if (clock_delay == 7) {
 				lpc_pos = MEM_READ_TAR;
 				clock_delay = 0;
+				data = (data << 4 | lad_nibble);
+				lad_nibble = data;
+				commit = 1;
 			}
 			else {
 				clock_delay++;
+				commit = 0;
+				data = (data << 4 | lad_nibble);
 			}
 			break;
 
@@ -387,15 +422,15 @@ void LpcAnalyzer::GetLpcPacket()
 
 
 		mLCLK->AdvanceToNextEdge(); //Advance to falling edge of LCLK
-		result_frame.mEndingSampleInclusive = mLCLK->GetSampleOfNextEdge(); //Frame ends at the falling edge of the next clock
-		result_frame.mData1 = lad_nibble; //store the lad values into the frame. mData1 stores the lads.
-		mResults->AddFrame(result_frame);
-		mResults->CommitResults();
+		if (commit) {
+			result_frame.mEndingSampleInclusive = mLCLK->GetSampleOfNextEdge(); //Frame ends at the falling edge of the next clock
+			result_frame.mData1 = lad_nibble; //store the lad values into the frame. mData1 stores the lads.
+			data = 0;
+			mResults->AddFrame(result_frame);
+		}
 	}
 
-	
-
-
+	mResults->CommitResults();
 }
 
 bool LpcAnalyzer::NeedsRerun()

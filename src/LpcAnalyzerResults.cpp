@@ -41,56 +41,16 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 		if (state == LpcAnalyzer::LPC_STATE::IO_READ_ADD ||
 			state == LpcAnalyzer::LPC_STATE::IO_WRITE_ADD) {
 
-			Frame prevFrame = GetFrame(frame_index - 1);
-			LpcAnalyzer::LPC_STATE prevState = (LpcAnalyzer::LPC_STATE)prevFrame.mData2;
-
-			//Check the previous frame to ensure we're at the start of the address frames
-			if (prevState != LpcAnalyzer::LPC_STATE::IO_READ_ADD &&
-				prevState != LpcAnalyzer::LPC_STATE::IO_WRITE_ADD) {
-				//IO Read/Write address are 4 nibbles long
-				Frame addressFrames[4];
-				for (U8 i = 0; i < 4; i++) {
-					addressFrames[i] = GetFrame(frame_index + i);
-				}
-				//Addresses are Most Significant Nibble First as per LPC spec
-				uint32_t address = addressFrames[0].mData1 << 12 |
-                         addressFrames[1].mData1 << 8 |
-                         addressFrames[2].mData1 << 4 |
-                         addressFrames[3].mData1 << 0;
-				snprintf(bubble_str, 100, "Full Address (MSNibble First) 0x%04x", address);
-				AddResultString(bubble_str);
-			}
+			snprintf(bubble_str, 100, "Address (0x%04x)", frame.mData1);
+			AddResultString(bubble_str);
 		}
 
 		/* COMBINE ADDRESS NIBBLES AND BUBBLE THE FULL ADDRESS OVER THE ADDRESS FRAMES*/
 		/* MEM READ WRITES */
 		else if (state == LpcAnalyzer::LPC_STATE::MEM_READ_ADD ||
 			state == LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD) {
-
-			Frame prevFrame = GetFrame(frame_index - 1);
-			LpcAnalyzer::LPC_STATE prevState = (LpcAnalyzer::LPC_STATE)prevFrame.mData2;
-
-			//Check the previous frame to ensure we're at the start of the address frames
-			if (prevState != LpcAnalyzer::LPC_STATE::MEM_READ_ADD &&
-				prevState != LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD) {
-				//Mem Read/Write address are 8 nibbles long
-				Frame addressFrames[8];
-				for (U8 i = 0; i < 8; i++) {
-					addressFrames[i] = GetFrame(frame_index + i);
-				}
-				//Addresses are Most Significant Nibble First as per LPC spec
-				uint32_t address = addressFrames[0].mData1 << 28 |
-                         addressFrames[1].mData1 << 24 |
-                         addressFrames[2].mData1 << 20 |
-                         addressFrames[3].mData1 << 16 |
-                         addressFrames[4].mData1 << 12 |
-                         addressFrames[5].mData1 << 8 |
-                         addressFrames[6].mData1 << 4 |
-                         addressFrames[7].mData1 << 0;
-
-				snprintf(bubble_str, 100, "Full Address (MSNibble First) 0x%08x", address);
-				AddResultString(bubble_str);
-			}
+			snprintf(bubble_str, 100, "Address (0x%08x)", frame.mData1);
+			AddResultString(bubble_str);
 		}
 
 
@@ -101,24 +61,8 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 			state == LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA || 
 			state == LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA) {
 
-			Frame prevFrame = GetFrame(frame_index - 1);
-			LpcAnalyzer::LPC_STATE prevState = (LpcAnalyzer::LPC_STATE)prevFrame.mData2;
-
-			//Check the previous frame to ensure we're at the start of the address frames
-			if (prevState != LpcAnalyzer::LPC_STATE::IO_READ_DATA &&
-				prevState != LpcAnalyzer::LPC_STATE::IO_WRITE_DATA &&
-				prevState != LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA &&
-				prevState != LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA) {
-				//Data bytes are 2 nibbles long
-				Frame dataFrames[2];
-				for (U8 i = 0; i < 2; i++) {
-					dataFrames[i] = GetFrame(frame_index + i);
-				}
-				//Data is sent out as the Least Significant Nibble First as per LPC spec
-				uint32_t data_byte = dataFrames[0].mData1 << 0 |	dataFrames[1].mData1 << 4;
-				snprintf(bubble_str, 100, "Data byte (LSNibble First) 0x%02x", data_byte);
-				AddResultString(bubble_str);
-			}
+			snprintf(bubble_str, 100, "Data (0x%02x)", frame.mData1);
+			AddResultString(bubble_str);
 		}
 
 	}
@@ -156,17 +100,22 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 
 		case LpcAnalyzer::LPC_STATE::IO_READ_ADD:
 		case LpcAnalyzer::LPC_STATE::IO_WRITE_ADD:
+			snprintf(bubble_str, 100, "Address (0x%04x)", frame.mData1);
+			AddResultString(bubble_str);
+			return;
 		case LpcAnalyzer::LPC_STATE::MEM_READ_ADD:
 		case LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD:
-			memcpy(state_str, "ADDRESS", 8);
-			break;
+			snprintf(bubble_str, 100, "Address (0x%08x)", frame.mData1);
+			AddResultString(bubble_str);
+			return;
 
 		case LpcAnalyzer::LPC_STATE::IO_READ_DATA:
 		case LpcAnalyzer::LPC_STATE::IO_WRITE_DATA:
 		case LpcAnalyzer::LPC_STATE::MEM_READ_DATA:
 		case LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA:
-			memcpy(state_str, "DATA", 5);
-			break;
+			snprintf(bubble_str, 100, "Data (0x%02x)", frame.mData1);
+			AddResultString(bubble_str);
+			return;
 
 		case LpcAnalyzer::LPC_STATE::IO_READ_TAR:
 		case LpcAnalyzer::LPC_STATE::IO_WRITE_TAR:
@@ -257,14 +206,8 @@ void LpcAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
 	  (nibble & 0x02 ? '1' : '0'), \
 	  (nibble & 0x01 ? '1' : '0') 
 
-
 	ClearTabularText();
-    if (frame_index == 0) return;
 	Frame frame = GetFrame(frame_index);
-	Frame prevFrame = GetFrame(frame_index - 1);
-	LpcAnalyzer::LPC_STATE prevState = (LpcAnalyzer::LPC_STATE)prevFrame.mData2;
-	Frame nextFrame[8]; //Get the next bunch of frames. Used to merged Address and Data nibbles.
-
 
 	char state_str[128];
 	char tab_str[128];
@@ -296,69 +239,18 @@ void LpcAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
 
 	case LpcAnalyzer::LPC_STATE::IO_READ_ADD:
 	case LpcAnalyzer::LPC_STATE::IO_WRITE_ADD:
-		if (prevState != LpcAnalyzer::LPC_STATE::IO_READ_ADD &&
-			prevState != LpcAnalyzer::LPC_STATE::IO_WRITE_ADD) {
-            for (U8 i = 0; i < 4; i++) {
-                nextFrame[i]= GetFrame(frame_index + i);
-            }
-			//IO Read/Write address are 4 nibbles long
-			//Addresses are Most Significant Nibble First as per LPC spec
-			uint32_t address = nextFrame[0].mData1 << 12 |
-				     nextFrame[1].mData1 << 8 |
-				     nextFrame[2].mData1 << 4 |
-				     nextFrame[3].mData1 << 0;
-			snprintf(tab_str, 100, "ADDRESS 0x%04x", address);
-			AddTabularText(tab_str);
-		}
-		else {
-			ClearTabularText();
-		}
+		snprintf(tab_str, 100, "ADDRESS (0x%04x)", frame.mData1);
 		return;
-		break;
 	case LpcAnalyzer::LPC_STATE::MEM_READ_ADD:
 	case LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD:
-		if (prevState != LpcAnalyzer::LPC_STATE::MEM_READ_ADD &&
-			prevState != LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD) {
-            for (U8 i = 0; i < 8; i++) {
-                nextFrame[i]= GetFrame(frame_index + i);
-            }
-			//Mem Read/Write address are 8 nibbles long
-			//Addresses are Most Significant Nibble First as per LPC spec
-			uint32_t address = nextFrame[0].mData1 << 28 |
-                     nextFrame[1].mData1 << 24 |
-                     nextFrame[2].mData1 << 20 |
-                     nextFrame[3].mData1 << 16 |
-                     nextFrame[4].mData1 << 12 |
-                     nextFrame[5].mData1 << 8 |
-                     nextFrame[6].mData1 << 4 |
-                     nextFrame[7].mData1 << 0;
-
-			snprintf(tab_str, 100, "ADDRESS (0x%08x)", address);
-			AddTabularText(tab_str);
-		}
+		snprintf(tab_str, 100, "ADDRESS (0x%08x)", frame.mData1);
 		return;
-		break;
 	case LpcAnalyzer::LPC_STATE::IO_READ_DATA:
 	case LpcAnalyzer::LPC_STATE::IO_WRITE_DATA:
 	case LpcAnalyzer::LPC_STATE::MEM_READ_DATA:
 	case LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA:
-		if (prevState != LpcAnalyzer::LPC_STATE::IO_READ_DATA &&
-			prevState != LpcAnalyzer::LPC_STATE::IO_WRITE_DATA &&
-		    prevState != LpcAnalyzer::LPC_STATE::MEM_READ_DATA &&
-			prevState != LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA) {
-
-            for (U8 i = 0; i < 2; i++) {
-                nextFrame[i]= GetFrame(frame_index + i);
-            }
-            //IO Read/Write address are 4 nibbles long
-            //Addresses are Most Significant Nibble First as per LPC spec
-            uint32_t data = nextFrame[0].mData1 << 0 |
-                        nextFrame[1].mData1 << 4;
-            snprintf(tab_str, 100, "DATA (0x%02x)", data);
-            AddTabularText(tab_str);
-        }
-        return;
-		break;
+		snprintf(tab_str, 100, "DATA (0x%02x)", frame.mData1);
+		return;
 
 	case LpcAnalyzer::LPC_STATE::IO_READ_TAR:
 	case LpcAnalyzer::LPC_STATE::IO_WRITE_TAR:
@@ -388,8 +280,7 @@ void LpcAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
 		snprintf(tab_str, 30, "ERROR");
 	}
 	else {
-		//snprintf(tab_str, 30, "%s (0b%c%c%c%c)", state_str, NIBBLE_TO_BINARY(frame.mData1));
-		snprintf(tab_str, 30, "%s (0x%x)", state_str, frame.mData1);
+		snprintf(tab_str, 30, "%s (0b%c%c%c%c)", state_str, NIBBLE_TO_BINARY(frame.mData1));
 	}
 	AddTabularText(tab_str);
 }
