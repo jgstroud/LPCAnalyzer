@@ -24,8 +24,7 @@ The following features are implemented in a basic form:
 
 
 ## Build Instructions
-1. git clone --recursive https://github.com/jgstroud/LPCAnalyzer.git
-2. Clone this repository into the SDK working folder.
+`git clone --recursive https://github.com/jgstroud/LPCAnalyzer.git`
 
 ### Windows
 1. Setup Visual Studio with Windows SDK and Platform Toolset (I used the latest rev of SDK 10.0, Platform Toolset v142)
