@@ -41,7 +41,7 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 		if (state == LpcAnalyzer::LPC_STATE::IO_READ_ADD ||
 			state == LpcAnalyzer::LPC_STATE::IO_WRITE_ADD) {
 
-			snprintf(bubble_str, 100, "Address (0x%04x)", frame.mData1);
+			snprintf(bubble_str, 100, "Address (0x%04x)", (U32)frame.mData1);
 			AddResultString(bubble_str);
 		}
 
@@ -49,7 +49,7 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 		/* MEM READ WRITES */
 		else if (state == LpcAnalyzer::LPC_STATE::MEM_READ_ADD ||
 			state == LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD) {
-			snprintf(bubble_str, 100, "Address (0x%08x)", frame.mData1);
+			snprintf(bubble_str, 100, "Address (0x%08x)", (U32)frame.mData1);
 			AddResultString(bubble_str);
 		}
 
@@ -61,7 +61,7 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 			state == LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA || 
 			state == LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA) {
 
-			snprintf(bubble_str, 100, "Data (0x%02x)", frame.mData1);
+			snprintf(bubble_str, 100, "Data (0x%02x)", (U32)frame.mData1);
 			AddResultString(bubble_str);
 		}
 
@@ -100,12 +100,12 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 
 		case LpcAnalyzer::LPC_STATE::IO_READ_ADD:
 		case LpcAnalyzer::LPC_STATE::IO_WRITE_ADD:
-			snprintf(bubble_str, 100, "Address (0x%04x)", frame.mData1);
+			snprintf(bubble_str, 100, "Address (0x%04x)", (U32)frame.mData1);
 			AddResultString(bubble_str);
 			return;
 		case LpcAnalyzer::LPC_STATE::MEM_READ_ADD:
 		case LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD:
-			snprintf(bubble_str, 100, "Address (0x%08x)", frame.mData1);
+			snprintf(bubble_str, 100, "Address (0x%08x)", (U32)frame.mData1);
 			AddResultString(bubble_str);
 			return;
 
@@ -113,7 +113,7 @@ void LpcAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
 		case LpcAnalyzer::LPC_STATE::IO_WRITE_DATA:
 		case LpcAnalyzer::LPC_STATE::MEM_READ_DATA:
 		case LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA:
-			snprintf(bubble_str, 100, "Data (0x%02x)", frame.mData1);
+			snprintf(bubble_str, 100, "Data (0x%02x)", (U32)frame.mData1);
 			AddResultString(bubble_str);
 			return;
 
@@ -239,19 +239,19 @@ void LpcAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
 
 	case LpcAnalyzer::LPC_STATE::IO_READ_ADD:
 	case LpcAnalyzer::LPC_STATE::IO_WRITE_ADD:
-		snprintf(tab_str, 100, "ADDRESS (0x%04x)", frame.mData1);
+		snprintf(tab_str, 100, "ADDRESS (0x%04x)", (U32)frame.mData1);
 		AddTabularText(tab_str);
 		return;
 	case LpcAnalyzer::LPC_STATE::MEM_READ_ADD:
 	case LpcAnalyzer::LPC_STATE::MEM_WRITE_ADD:
-		snprintf(tab_str, 100, "ADDRESS (0x%08x)", frame.mData1);
+		snprintf(tab_str, 100, "ADDRESS (0x%08x)", (U32)frame.mData1);
 		AddTabularText(tab_str);
 		return;
 	case LpcAnalyzer::LPC_STATE::IO_READ_DATA:
 	case LpcAnalyzer::LPC_STATE::IO_WRITE_DATA:
 	case LpcAnalyzer::LPC_STATE::MEM_READ_DATA:
 	case LpcAnalyzer::LPC_STATE::MEM_WRITE_DATA:
-		snprintf(tab_str, 100, "DATA (0x%02x)", frame.mData1);
+		snprintf(tab_str, 100, "DATA (0x%02x)", (U32)frame.mData1);
 		AddTabularText(tab_str);
 		return;
 

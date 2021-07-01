@@ -10,9 +10,12 @@ CXXFLAGS := -Wall -O2 -c
 FPIC     := -fPIC
 SHARE    := -dynamiclib -o
 OBJ      := *.o
-cpp		 :=  -std=c++11
+CPP_STD	 :=  -std=c++11
 
 $(TARGET) : $(HFILe) $(SRC)
 	$(CC) $(CXXFLAGS) $(CPP_STD) $(FPIC) $(SRC) $(INC)
 	$(CC) $(SHARE) $(TARGET) $(OBJ) $(LINK)
 
+.PHONY: clean
+clean:
+	rm -f $(TARGET) *.o
