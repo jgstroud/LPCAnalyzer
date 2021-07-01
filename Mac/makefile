@@ -1,11 +1,11 @@
-TARGET  := libSPI.dylib
+TARGET  := libLpcAnalyzer.dylib
 
-LINK := -L "../../lib/Mac" -lAnalyzer
+LINK := -L "../AnalyzerSDK/lib" -lAnalyzer
 
 CC       := clang++
 HFILE    := ../../inc/*.h
 SRC      := ../src/*.cpp
-INC      := -I ../../inc/
+INC      := -I ../AnalyzerSDK/include/
 CXXFLAGS := -Wall -O2 -c
 FPIC     := -fPIC
 SHARE    := -dynamiclib -o
