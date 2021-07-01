@@ -1,6 +1,6 @@
 # LPCAnalyzer Plugin
 
-LPC analyer plugin for the [Kingst](http://www.qdkingst.com/en) branded Logic Analysers. This was developed using their SDK. <br/>  <br/> **Minimum Sample Rate of 200Mhz is required**
+LPC analyer plugin for the [Saleae](http://www.saleae.com) branded Logic Analysers. This was developed using their SDK. <br/>  <br/> **Minimum Sample Rate of 200Mhz is required**
 
 This is considered **BETA** and the code has been hastily put together. All results may not be accurate. So use at your own risk.
 
@@ -24,20 +24,23 @@ The following features are implemented in a basic form:
 
 
 ## Build Instructions
-1. Download the Kingst SDK from [http://www.qdkingst.com/en](http://www.qdkingst.com/en) and extract to a working folder.
+1. git clone --recursive https://github.com/jgstroud/LPCAnalyzer.git
 2. Clone this repository into the SDK working folder.
 
 ### Windows
 1. Setup Visual Studio with Windows SDK and Platform Toolset (I used the latest rev of SDK 10.0, Platform Toolset v142)
 2. Open `LpcAnalyzer.vcxproj` in the vs2019 folder.
-3. If you point the Debugger to the KingstVIS.exe and compile the DLL as debug, you can step through the code. (You need to copy the debug .DLL to the Kingst analyser folder.)
+3. If you point the Debugger to the Logic binary and compile the DLL as debug, you can step through the code. (You need to copy the debug .DLL to the Logic analyser folder.)
 4. Set build properties to Release and x64/x86. This has been tested mainly on x64 build.
-5. A DLL file will be generated which should be copied to the Kingst Analyzer folder.
+5. A DLL file will be generated which should be copied to the Logic Analyzer folder.
 
 ### Linux 
 1. Browse the the `Linux` folder of this repo and type `make`. 
-2. Copy the `libLPC.so` copied to the KingstVIZ software `Analyzer` folder. 
+
+### Mac
+1. Browse the the `Mac` folder of this repo and type `make`. 
 
 By Ryzee119
 
 Contributor b1ghamm3r
+Contributor jstroud
